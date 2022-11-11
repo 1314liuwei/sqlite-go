@@ -1,7 +1,7 @@
 package main
 
 import (
-	"1314liuwei/sqlite.go/consts"
+	"1314liuwei/sqlite.go/compiler"
 	"bufio"
 	"fmt"
 	"log"
@@ -19,17 +19,33 @@ func main() {
 	)
 
 	for {
-		fmt.Printf("db>")
+		fmt.Printf("db> ")
 		input, err = inputReader.ReadString('\n')
 		if err != nil {
 			log.Fatalf("input err: %s", err)
 		}
 		input = strings.TrimSpace(input)
 
-		if input == consts.Exit {
-			return
-		} else {
-			fmt.Printf("Unrecognized command '%s'. \n", input)
+		if input == "" {
+			continue
 		}
+
+		if input[0] == '.' {
+			switch compiler.DoMetaCommand(input) {
+			case compiler.McsSuccess:
+				continue
+			case compiler.McsUnrecognizedCommand:
+				fmt.Println("Unrecognized command: ", input)
+			}
+		}
+
+		st, ps := compiler.PrepareStatement(input)
+		switch ps {
+		case compiler.PsSuccess:
+		case compiler.PsUnrecognizedState:
+			fmt.Printf("Unrecognized keyword at start of '%s'.", input)
+		}
+
+		compiler.ExecuteStatement(st)
 	}
 }
