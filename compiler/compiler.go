@@ -1,6 +1,8 @@
 package compiler
 
 import (
+	"1314liuwei/sqlite.go/table"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -13,20 +15,18 @@ const (
 	McsUnrecognizedCommand
 )
 
-type PrepareState int
-
-const (
-	PsSuccess PrepareState = iota
-	PsUnrecognizedState
-)
-
 type StatementType int
 
 const (
-	StUnknow StatementType = iota
+	StUnknown StatementType = iota
 	StInsert
 	StSelect
 )
+
+type UserTableStatement struct {
+	Type StatementType
+	Row  table.UserTableRow
+}
 
 func DoMetaCommand(cmd string) MetaCommandState {
 	switch cmd {
@@ -38,26 +38,39 @@ func DoMetaCommand(cmd string) MetaCommandState {
 	}
 }
 
-func PrepareStatement(cmd string) (StatementType, PrepareState) {
-	stMap := map[string]StatementType{
-		"insert": StInsert,
-		"select": StSelect,
-	}
+func PrepareStatement(cmd string) (UserTableStatement, error) {
+	if strings.HasPrefix(strings.ToLower(cmd), "insert") {
+		var row table.UserTableRow
 
-	for s, statementType := range stMap {
-		if strings.HasPrefix(strings.ToLower(cmd), s) {
-			return statementType, PsSuccess
+		_, err := fmt.Sscanf(cmd, "insert %d %s %s", &row.ID, &row.Username, &row.Email)
+		if err != nil {
+			return UserTableStatement{}, err
 		}
-	}
-	return StUnknow, PsUnrecognizedState
 
+		return UserTableStatement{Type: StInsert, Row: row}, nil
+	}
+
+	if strings.HasPrefix(strings.ToLower(cmd), "select") {
+		return UserTableStatement{Type: StSelect}, nil
+	}
+
+	return UserTableStatement{}, errors.New("unrecognized prepare state")
 }
 
-func ExecuteStatement(state StatementType) {
-	switch state {
+func ExecuteStatement(state UserTableStatement) error {
+	switch state.Type {
 	case StInsert:
-		fmt.Println("This is where we would do an insert.")
+		fmt.Println("exec insert!")
+		err := table.Table().ExecuteInsert(state.Row)
+		if err != nil {
+			return err
+		}
 	case StSelect:
-		fmt.Println("This is where we would do a select.")
+		fmt.Println("exec select!")
+		err := table.Table().ExecuteSelect()
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }

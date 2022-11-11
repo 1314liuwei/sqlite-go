@@ -39,13 +39,14 @@ func main() {
 			}
 		}
 
-		st, ps := compiler.PrepareStatement(input)
-		switch ps {
-		case compiler.PsSuccess:
-		case compiler.PsUnrecognizedState:
-			fmt.Printf("Unrecognized keyword at start of '%s'.", input)
+		st, err := compiler.PrepareStatement(input)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		compiler.ExecuteStatement(st)
+		err = compiler.ExecuteStatement(st)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
