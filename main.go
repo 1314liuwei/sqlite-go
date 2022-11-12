@@ -2,6 +2,8 @@ package main
 
 import (
 	"1314liuwei/sqlite.go/compiler"
+	"1314liuwei/sqlite.go/consts"
+	"1314liuwei/sqlite.go/database"
 	"bufio"
 	"fmt"
 	"log"
@@ -18,6 +20,10 @@ func main() {
 		inputReader = bufio.NewReader(os.Stdin)
 	)
 
+	db, err := database.Open("./db.gdb")
+	if err != nil {
+		return
+	}
 	for {
 		fmt.Printf("db> ")
 		input, err = inputReader.ReadString('\n')
@@ -32,9 +38,9 @@ func main() {
 
 		if input[0] == '.' {
 			switch compiler.DoMetaCommand(input) {
-			case compiler.McsSuccess:
+			case consts.McsSuccess:
 				continue
-			case compiler.McsUnrecognizedCommand:
+			case consts.McsUnrecognizedCommand:
 				fmt.Println("Unrecognized command: ", input)
 			}
 		}
@@ -44,7 +50,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		err = compiler.ExecuteStatement(st)
+		err = db.ExecuteStatement(st)
 		if err != nil {
 			log.Println(err)
 		}

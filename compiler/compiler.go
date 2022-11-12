@@ -1,76 +1,39 @@
 package compiler
 
 import (
-	"1314liuwei/sqlite.go/table"
+	"1314liuwei/sqlite.go/consts"
+	"1314liuwei/sqlite.go/database"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 )
 
-type MetaCommandState int
-
-const (
-	McsSuccess MetaCommandState = iota
-	McsUnrecognizedCommand
-)
-
-type StatementType int
-
-const (
-	StUnknown StatementType = iota
-	StInsert
-	StSelect
-)
-
-type UserTableStatement struct {
-	Type StatementType
-	Row  table.UserTableRow
-}
-
-func DoMetaCommand(cmd string) MetaCommandState {
+func DoMetaCommand(cmd string) consts.MetaCommandState {
 	switch cmd {
 	case ".exit":
 		os.Exit(0)
-		return McsSuccess
+		return consts.McsSuccess
 	default:
-		return McsUnrecognizedCommand
+		return consts.McsUnrecognizedCommand
 	}
 }
 
-func PrepareStatement(cmd string) (UserTableStatement, error) {
+func PrepareStatement(cmd string) (database.UserTableStatement, error) {
 	if strings.HasPrefix(strings.ToLower(cmd), "insert") {
-		var row table.UserTableRow
+		var row database.UserTableRow
 
 		_, err := fmt.Sscanf(cmd, "insert %d %s %s", &row.ID, &row.Username, &row.Email)
 		if err != nil {
-			return UserTableStatement{}, err
+			return database.UserTableStatement{}, err
 		}
 
-		return UserTableStatement{Type: StInsert, Row: row}, nil
+		return database.UserTableStatement{Type: consts.StInsert, Row: row}, nil
 	}
 
 	if strings.HasPrefix(strings.ToLower(cmd), "select") {
-		return UserTableStatement{Type: StSelect}, nil
+		return database.UserTableStatement{Type: consts.StSelect}, nil
 	}
 
-	return UserTableStatement{}, errors.New("unrecognized prepare state")
-}
-
-func ExecuteStatement(state UserTableStatement) error {
-	switch state.Type {
-	case StInsert:
-		fmt.Println("exec insert!")
-		err := table.Table().ExecuteInsert(state.Row)
-		if err != nil {
-			return err
-		}
-	case StSelect:
-		fmt.Println("exec select!")
-		err := table.Table().ExecuteSelect()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return database.UserTableStatement{}, errors.New("unrecognized prepare state")
 }
