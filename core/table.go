@@ -1,4 +1,4 @@
-package database
+package core
 
 import "1314liuwei/sqlite.go/consts"
 

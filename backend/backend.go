@@ -1,4 +1,4 @@
-package database
+package backend
 
 import (
 	"1314liuwei/sqlite.go/consts"
@@ -10,8 +10,22 @@ import (
 	"unsafe"
 )
 
-type DB interface {
-	ExecuteStatement(state UserTableStatement) error
+type UserTable struct {
+	counter   uint
+	rowSize   int
+	RowLength int
+	Rows      []UserTableRow
+}
+
+type UserTableRow struct {
+	ID       uint
+	Username string
+	Email    string
+}
+
+type UserTableStatement struct {
+	Type consts.StatementType
+	Row  UserTableRow
 }
 
 type Database struct {
@@ -19,7 +33,7 @@ type Database struct {
 	table *UserTable
 }
 
-func Open(name string) (DB, error) {
+func Open(name string) (*Database, error) {
 	file, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
@@ -29,7 +43,7 @@ func Open(name string) (DB, error) {
 		conn: file,
 		table: &UserTable{
 			counter: 1,
-			rowSize: getTableSizeof(UserTableRow{}),
+			rowSize: GetTableSizeof(UserTableRow{}),
 		},
 	}
 
@@ -84,7 +98,7 @@ func (db *Database) Flush() error {
 	)
 
 	row := db.table.Rows[db.table.RowLength-1]
-	data := make([]byte, getTableSizeof(db.table.Rows[0]))
+	data := make([]byte, GetTableSizeof(db.table.Rows[0]))
 	*(*uint)(unsafe.Pointer(&data[0])) = row.ID
 	offset += int(unsafe.Sizeof(row.ID))
 
@@ -161,7 +175,7 @@ func (db *Database) ExecuteStatement(state UserTableStatement) error {
 	return nil
 }
 
-func getTableSizeof(row UserTableRow) int {
+func GetTableSizeof(row UserTableRow) int {
 	size := 0
 	size += int(unsafe.Sizeof(row.ID))
 	size += consts.TableMaxStringLength

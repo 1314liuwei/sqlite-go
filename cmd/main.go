@@ -3,7 +3,7 @@ package main
 import (
 	"1314liuwei/sqlite.go/compiler"
 	"1314liuwei/sqlite.go/consts"
-	"1314liuwei/sqlite.go/database"
+	"1314liuwei/sqlite.go/core"
 	"bufio"
 	"fmt"
 	"log"
@@ -20,7 +20,7 @@ func main() {
 		inputReader = bufio.NewReader(os.Stdin)
 	)
 
-	db, err := database.Open("./db.gdb")
+	db, err := core.Open("./db.gdb")
 	if err != nil {
 		return
 	}

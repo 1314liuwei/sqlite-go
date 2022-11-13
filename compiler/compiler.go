@@ -2,38 +2,63 @@ package compiler
 
 import (
 	"1314liuwei/sqlite.go/consts"
-	"1314liuwei/sqlite.go/database"
+	"1314liuwei/sqlite.go/core"
+	"bufio"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
 
-func DoMetaCommand(cmd string) consts.MetaCommandState {
-	switch cmd {
-	case ".exit":
-		os.Exit(0)
-		return consts.McsSuccess
-	default:
-		return consts.McsUnrecognizedCommand
+type Compiler struct{}
+
+func (t *Compiler) GetStdinInput() string {
+	var (
+		inputReader = bufio.NewReader(os.Stdin)
+		input       string
+		err         error
+	)
+
+	for {
+		fmt.Printf("db> ")
+		input, err = inputReader.ReadString('\n')
+		if err != nil {
+			log.Fatalf("input err: %s", err)
+		}
+		input = strings.TrimSpace(input)
+
+		if input == "" {
+			continue
+		}
 	}
 }
 
-func PrepareStatement(cmd string) (database.UserTableStatement, error) {
+func (t *Compiler) DoMetaCommand(cmd string) error {
+	switch cmd {
+	case ".exit":
+		os.Exit(0)
+		return nil
+	default:
+		return errors.New("unrecognized meta command")
+	}
+}
+
+func (t *Compiler) PrepareStatement(cmd string) (core.UserTableStatement, error) {
 	if strings.HasPrefix(strings.ToLower(cmd), "insert") {
-		var row database.UserTableRow
+		var row core.UserTableRow
 
 		_, err := fmt.Sscanf(cmd, "insert %d %s %s", &row.ID, &row.Username, &row.Email)
 		if err != nil {
-			return database.UserTableStatement{}, err
+			return core.UserTableStatement{}, err
 		}
 
-		return database.UserTableStatement{Type: consts.StInsert, Row: row}, nil
+		return core.UserTableStatement{Type: consts.StInsert, Row: row}, nil
 	}
 
 	if strings.HasPrefix(strings.ToLower(cmd), "select") {
-		return database.UserTableStatement{Type: consts.StSelect}, nil
+		return core.UserTableStatement{Type: consts.StSelect}, nil
 	}
 
-	return database.UserTableStatement{}, errors.New("unrecognized prepare state")
+	return core.UserTableStatement{}, errors.New("unrecognized prepare state")
 }
