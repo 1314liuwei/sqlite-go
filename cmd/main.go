@@ -1,8 +1,6 @@
 package main
 
 import (
-	"1314liuwei/sqlite.go/compiler"
-	"1314liuwei/sqlite.go/consts"
 	"1314liuwei/sqlite.go/core"
 	"bufio"
 	"fmt"
@@ -32,25 +30,7 @@ func main() {
 		}
 		input = strings.TrimSpace(input)
 
-		if input == "" {
-			continue
-		}
-
-		if input[0] == '.' {
-			switch compiler.DoMetaCommand(input) {
-			case consts.McsSuccess:
-				continue
-			case consts.McsUnrecognizedCommand:
-				fmt.Println("Unrecognized command: ", input)
-			}
-		}
-
-		st, err := compiler.PrepareStatement(input)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = db.ExecuteStatement(st)
+		_, err = db.Execute(input)
 		if err != nil {
 			log.Println(err)
 		}

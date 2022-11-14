@@ -5,13 +5,6 @@ const (
 	TableMaxStringLength = 255
 )
 
-type MetaCommandState int
-
-const (
-	McsSuccess MetaCommandState = iota
-	McsUnrecognizedCommand
-)
-
 type StatementType int
 
 const (

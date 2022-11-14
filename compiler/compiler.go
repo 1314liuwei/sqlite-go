@@ -1,8 +1,8 @@
 package compiler
 
 import (
+	"1314liuwei/sqlite.go/backend"
 	"1314liuwei/sqlite.go/consts"
-	"1314liuwei/sqlite.go/core"
 	"bufio"
 	"errors"
 	"fmt"
@@ -44,21 +44,21 @@ func (t *Compiler) DoMetaCommand(cmd string) error {
 	}
 }
 
-func (t *Compiler) PrepareStatement(cmd string) (core.UserTableStatement, error) {
+func (t *Compiler) PrepareStatement(cmd string) (backend.UserTableStatement, error) {
 	if strings.HasPrefix(strings.ToLower(cmd), "insert") {
-		var row core.UserTableRow
+		var row backend.UserTableRow
 
 		_, err := fmt.Sscanf(cmd, "insert %d %s %s", &row.ID, &row.Username, &row.Email)
 		if err != nil {
-			return core.UserTableStatement{}, err
+			return backend.UserTableStatement{}, err
 		}
 
-		return core.UserTableStatement{Type: consts.StInsert, Row: row}, nil
+		return backend.UserTableStatement{Type: consts.StInsert, Row: row}, nil
 	}
 
 	if strings.HasPrefix(strings.ToLower(cmd), "select") {
-		return core.UserTableStatement{Type: consts.StSelect}, nil
+		return backend.UserTableStatement{Type: consts.StSelect}, nil
 	}
 
-	return core.UserTableStatement{}, errors.New("unrecognized prepare state")
+	return backend.UserTableStatement{}, errors.New("unrecognized prepare state")
 }
