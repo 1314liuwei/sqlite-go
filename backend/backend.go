@@ -29,8 +29,9 @@ type UserTableStatement struct {
 }
 
 type Database struct {
-	conn  *os.File
-	table *UserTable
+	conn   *os.File
+	table  *UserTable
+	cursor *UserTableRow
 }
 
 func Open(name string) (*Database, error) {
@@ -87,6 +88,7 @@ func (db *Database) ExecuteSelect() error {
 	fmt.Println("ID\t|Username\t|Email")
 	for i := 0; i < table.RowLength; i++ {
 		row := table.Rows[i]
+		db.cursor = &row
 		fmt.Printf("%d\t|%s\t|%s\n", row.ID, row.Username, row.Email)
 	}
 	return nil
